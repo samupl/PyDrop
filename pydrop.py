@@ -11,6 +11,7 @@ import sys
 import pydrop
 import pydrop.messages
 import pydrop.core
+import pydrop.variables
 from pydrop.binds import binds
 import modules
 
@@ -56,7 +57,7 @@ _cfgint = {
     'irc': {
                 'name': "No network-name specified",
                 'server': "No network address specified",
-                'channel': "No auto-join channels specified. If you don't want the bot to join any channels on startup, simply put a '' here"
+                'channels': "No auto-join channels specified. If you don't want the bot to join any channels on startup, simply put a '' here"
             },
 }
 
@@ -74,6 +75,14 @@ if not _cfgint_ok:
     exit(5)
 else:
     pydrop.messages.pdebug("Config file looks OK, proceeding to the actual start")
+
+pydrop.variables.owner              = config.get('owner', 'nick')
+pydrop.variables.password           = config.get('owner', 'password')
+pydrop.variables.nick               = config.get('bot', 'nick')
+pydrop.variables.owner_identified   = False
+
+_channels = config.get('irc', 'channels').split(",")
+
 
 pydrop.messages.pdebug("Loading modules...")
 
@@ -136,6 +145,13 @@ while 1:
     except:
         _ltext = None
     try:
+        if _lsplit[1] == "001":
+            for c in _channels:
+                c = c.strip()
+                if c[-1:] == ',':
+                    c = c[:-1]
+                pydrop.core.ircSend(_sock, "JOIN %s" % (c))
+                    
         if _lsplit[1] in binds:
             for mod in binds[_lsplit[1]]:
                     getattr(sys.modules[mod], 'init')(_lsplit, _ltext)
