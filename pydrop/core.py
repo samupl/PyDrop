@@ -55,5 +55,3 @@ def unpackUserHost(text):
     user = sp1[0][1:]
     ident, host = sp1[1].split("@")
     return (user, ident, host)
-    
-    
