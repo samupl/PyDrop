@@ -77,12 +77,30 @@ else:
 
 pydrop.messages.pdebug("Loading modules...")
 
+try:
+    mods = config.get('modules', 'list').split(',')
+except:
+    mods = {}
+
+if mods[-1:][0].strip() == '' and len(mods) > 1:
+    mods = mods[:-1]
+
+for m in mods:
+    try:
+        __import__(m)
+    except:
+        pydrop.messages.perror("Unable to load preloaded module (%s), backtrace below:" % (m))
+        for line in traceback.format_exc().splitlines():
+            print line
+        pydrop.messages.perror(sys.exc_info()[1])
+        exit(3)
+    
 for _bind in binds:
     for _mod in binds[_bind]:
         try:
             __import__(_mod)
         except:
-            pydrop.messages.perror("Unable to load module (), stacktrace below:")
+            pydrop.messages.perror("Unable to load binded module (%s), backtrace below:" % (_mod))
             for line in traceback.format_exc().splitlines():
                 print line
             pydrop.messages.perror(sys.exc_info()[1])
