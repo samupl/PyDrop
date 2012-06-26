@@ -154,7 +154,14 @@ while 1:
                     
         if _lsplit[1] in binds:
             for mod in binds[_lsplit[1]]:
+                try:
                     getattr(sys.modules[mod], 'init')(_sock, _lsplit, _ltext)
+                except:
+                    pydrop.messages.pwarning("Error in module (%s):" % (mod))
+                    for line in traceback.format_exc().splitlines():
+                        print line
+                    pydrop.messages.pwarning(sys.exc_info()[1])
+                    
 
         if _lsplit[0] == "PING":
             # Reply to the ping (hardcoded)
