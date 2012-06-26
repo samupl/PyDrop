@@ -14,6 +14,7 @@ import pydrop.core
 import pydrop.variables
 from pydrop.binds import binds
 import modules
+pydrop.variables.binds = binds
 
 # Some local not-important configuration
 _NAME       = "PyDrop"
@@ -80,6 +81,7 @@ pydrop.variables.owner              = config.get('owner', 'nick')
 pydrop.variables.password           = config.get('owner', 'password')
 pydrop.variables.nick               = config.get('bot', 'nick')
 pydrop.variables.owner_identified   = False
+pydrop.variables.need_reload        = []
 
 _channels = config.get('irc', 'channels').split(",")
 
@@ -87,14 +89,14 @@ _channels = config.get('irc', 'channels').split(",")
 pydrop.messages.pdebug("Loading modules...")
 
 try:
-    mods = config.get('modules', 'list').split(',')
+    pydrop.variables.mods = config.get('modules', 'list').split(',')
 except:
-    mods = {}
+    pydrop.variables.mods = {}
 
-if mods[-1:][0].strip() == '' and len(mods) > 1:
-    mods = mods[:-1]
+if pydrop.variables.mods[-1:][0].strip() == '' and len(mods) > 1:
+    pydrop.variables.mods = mods[:-1]
 
-for m in mods:
+for m in pydrop.variables.mods:
     try:
         __import__(m)
     except:
@@ -104,8 +106,8 @@ for m in mods:
         pydrop.messages.perror(sys.exc_info()[1])
         exit(3)
     
-for _bind in binds:
-    for _mod in binds[_bind]:
+for _bind in pydrop.variables.binds:
+    for _mod in pydrop.variables.binds[_bind]:
         try:
             __import__(_mod)
         except:
@@ -152,9 +154,14 @@ while 1:
                     c = c[:-1]
                 pydrop.core.ircSend(_sock, "JOIN %s" % (c))
                     
-        if _lsplit[1] in binds:
-            for mod in binds[_lsplit[1]]:
+        if _lsplit[1] in pydrop.variables.binds:
+            for mod in pydrop.variables.binds[_lsplit[1]]:
                 try:
+                    if mod not in sys.modules:
+                        __import__(mod)
+                    if mod in pydrop.variables.need_reload:
+                        reload(sys.modules[mod])
+                        del pydrop.variables.need_reload[pydrop.variables.need_reload.index(mod)]
                     getattr(sys.modules[mod], 'init')(_sock, _lsplit, _ltext)
                 except:
                     pydrop.messages.pwarning("Error in module (%s):" % (mod))

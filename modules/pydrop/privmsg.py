@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*
 
 import pydrop.variables
+import pydrop.messages
 import pydrop.core
 import hashlib
 
@@ -18,26 +19,15 @@ def init(sock, original_list, text):
         else:
             pydrop.core.ircSend(sock, "PRIVMSG %s :Permission Denied" % (nick))
             pydrop.core.ircSend(sock, "PRIVMSG %s :%s (%s@%s) Failed to identify to the bot." % (pydrop.variables.owner, nick, user, host))
-"""
+
     if ltext[0].lower() == "reload" and original_list[2] == pydrop.variables.nick:
         if True:
-            print "Reload start"
-            #print main.binds
-            print "Reload end"
-        else:
-            pydrop.core.ircSend(sock, "PRIVMSG %s :Permission Denied" % (nick))
-"""
-"""
-    print ltext[0].lower()
-    if ltext[0].lower() == "reload" and original_list[2] == pydrop.variables.nick:
-        print "?"
-        #if nick == pydrop.variables.owner and pydrop.variables.owner_identified:
-        if True:
-            print "Here it goes"
-            import pydrop.binds
+            pydrop.messages.pdebug("Setting new modules for reloading...")
             reload(pydrop.binds)
-            print pydrop.binds
-            
+            pydrop.variables.binds = pydrop.binds.binds
+            for _bind in pydrop.binds.binds:
+                for _mod in pydrop.binds.binds[_bind]:
+                    pydrop.variables.need_reload.append(_mod)
+            pydrop.messages.pdebug("Done...")
         else:
             pydrop.core.ircSend(sock, "PRIVMSG %s :Permission Denied" % (nick))
-"""
