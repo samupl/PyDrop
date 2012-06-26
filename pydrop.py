@@ -154,7 +154,7 @@ while 1:
                     
         if _lsplit[1] in binds:
             for mod in binds[_lsplit[1]]:
-                    getattr(sys.modules[mod], 'init')(_lsplit, _ltext)
+                    getattr(sys.modules[mod], 'init')(_sock, _lsplit, _ltext)
 
         if _lsplit[0] == "PING":
             # Reply to the ping (hardcoded)

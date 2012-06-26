@@ -49,4 +49,11 @@ def recvline(s):
             ret += c
             
     return ret
+
+def unpackUserHost(text):
+    sp1 = text.split("!")
+    user = sp1[0][1:]
+    ident, host = sp1[1].split("@")
+    return (user, ident, host)
+    
     
