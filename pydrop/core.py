@@ -40,9 +40,13 @@ def recvline(s):
     ret = ''
     while True:
         c = s.recv(1)
-        if c == "\n" or c == '':
+        if c == "\n":
+            break
+        elif c == '':
+            return False
             break
         else:
             ret += c
+            
     return ret
     

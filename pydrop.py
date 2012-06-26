@@ -28,6 +28,10 @@ args = parser.parse_args()
 pydrop.messages.pdebug("Starting %s version %s by %s" % (_NAME, _VERSION, _AUTHOR))
 
 # Read the user-specified config file
+if args.config == None:
+    pydrop.messages.perror("You haven't specified a config file. Use --config <path> to specify it.")
+    exit(1)
+    
 config = ConfigParser.ConfigParser()
 try:
     config.readfp(open(args.config))
@@ -95,23 +99,33 @@ _registered = False
 
 while 1:
     line = pydrop.core.recvline(_sock)
-    _lsplit = line.split(" ")
+    if line == False:
+        pydrop.messages.perror("Connection to the IRC server has been lost. Reconnecting...")
+        _sock = pydrop.core.ircConnect(_serverlist, config.get('irc', 'port'))
+        _registered = False
+
     if not _registered:
         _registered = pydrop.core.botRegister(_sock, config.get('bot', 'nick'), config.get('bot', 'ident'), config.get('bot', 'name'), _flags)
 
-    print _lsplit
-    # [':xa!~xa@staff.netadmin', 'PRIVMSG', '#main', ':zuo', 'zuo', 'zuo\r']
+    try:
+        _lsplit = line.split(" ")
+    except:
+        pass
+        
     # Send a signal to all registered binds (modules)
     try:
         _ltext = line.split(" :", 1)[1]
     except:
         _ltext = None
-    if _lsplit[1] in binds:
-        for mod in binds[_lsplit[1]]:
-                getattr(sys.modules[mod], 'init')(_lsplit, _ltext)
+    try:
+        if _lsplit[1] in binds:
+            for mod in binds[_lsplit[1]]:
+                    getattr(sys.modules[mod], 'init')(_lsplit, _ltext)
 
-    
-    if _lsplit[0] == "PING":
-        # Reply to the ping (hardcoded)
-        _sock.send("PONG %s" % (_lsplit[1]))
-        # !! TODO: PING bindings (somebody may want to use them)
+        if _lsplit[0] == "PING":
+            # Reply to the ping (hardcoded)
+            _sock.send("PONG %s" % (_lsplit[1]))
+            # !! TODO: PING bindings (somebody may want to use them)
+            
+    except:
+        pass
